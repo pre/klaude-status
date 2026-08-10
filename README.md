@@ -91,7 +91,7 @@ are yours to choose. Full reference: [docs/configuration.md](docs/configuration.
 | Name | Shows |
 | --- | --- |
 | `path` | project root, then the path inside it dimmed, `+Nd` for `/add-dir` directories |
-| `git` | `⎇ branch`, `*` modified, `?` check timed out, `↑n`/`↓n` ahead/behind, `⧉name` worktree |
+| `git` | `⎇ branch`, `*` modified, `?` check timed out, `↑n`/`↓n` ahead/behind, `⧉ name` worktree |
 | `session` | session name, or `#abcd` from the id |
 | `model` | display name, plus `1M` on a 1M-context model |
 | `effort` | `low` … `max` |

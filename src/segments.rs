@@ -123,7 +123,7 @@ impl Ctx<'_> {
         // The worktree name arrives ready-made from Claude Code, so it is not
         // looked up in git again.
         if let Some(name) = self.worktree_name() {
-            out.push_str(&self.p.paint(&format!(" \u{29c9}{name}"), Color::Cyan));
+            out.push_str(&self.p.paint(&format!(" \u{29c9} {name}"), Color::Cyan));
         }
         Some(out)
     }
