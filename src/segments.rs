@@ -40,25 +40,27 @@ impl Ctx<'_> {
         }
     }
 
-    /// Where we are. The project root is emphasized and the path inside it is
-    /// dimmed, because the root says *which* project and the rest only says
+    /// Where we are. The repository root is emphasized and everything around it
+    /// is dimmed, because the root says *which* project and the rest only says
     /// *where* inside it.
     fn path(&self) -> Option<String> {
+        self.path_variants().into_iter().next()
+    }
+
+    /// The path from the full form down to the shortest one that still names
+    /// the repository and the current directory. `render` picks the widest that
+    /// fits:
+    ///
+    /// ```text
+    /// ~/dev/acme/data-pipeline/.worktrees/fix-retries
+    /// …data-pipeline/.worktrees/fix-retries
+    /// …data-pipeline/…/fix-retries
+    /// ```
+    pub fn path_variants(&self) -> Vec<String> {
         let cwd = self.input.current_dir();
         if cwd.is_empty() {
-            return None;
+            return Vec::new();
         }
-
-        let mut out = match self.input.project_dir().and_then(|p| relative_to(cwd, p)) {
-            Some((project, rel)) => {
-                let mut s = self.p.bold(basename(project));
-                if !rel.is_empty() {
-                    s.push_str(&self.p.dim(&format!("/{rel}")));
-                }
-                s
-            }
-            None => self.p.bold(&shorten_path(cwd)),
-        };
 
         // Added directories (`/add-dir`) widen what Claude can see, so their
         // existence belongs on the status line.
@@ -68,10 +70,60 @@ impl Ctx<'_> {
             .as_ref()
             .map(|w| w.added_dirs.len())
             .unwrap_or(0);
-        if added > 0 {
-            out.push_str(&self.p.dim(&format!(" +{added}d")));
+        let suffix = if added > 0 {
+            self.p.dim(&format!(" +{added}d"))
+        } else {
+            String::new()
+        };
+
+        let mut out = Vec::new();
+        let mut push = |lead: &str, name: &str, rest: String| {
+            let s = format!(
+                "{}{}{}{}",
+                self.p.dim(lead),
+                self.p.bold(name),
+                self.p.dim(&rest),
+                suffix
+            );
+            if out.last() != Some(&s) {
+                out.push(s);
+            }
+        };
+
+        match self.root().and_then(|root| relative_to(cwd, root)) {
+            Some((root, rel)) => {
+                let shown = tilde(root);
+                let name = basename(&shown).to_string();
+                let lead = &shown[..shown.len() - name.len()];
+                let rest = if rel.is_empty() {
+                    String::new()
+                } else {
+                    format!("/{rel}")
+                };
+                push(lead, &name, rest.clone());
+                push("\u{2026}", &name, rest);
+                if !rel.is_empty() {
+                    push("\u{2026}", &name, format!("/\u{2026}/{}", basename(rel)));
+                }
+            }
+            None => {
+                let shown = tilde(cwd);
+                let name = basename(&shown).to_string();
+                let lead = &shown[..shown.len() - name.len()];
+                push(lead, &name, String::new());
+                push("\u{2026}/", &name, String::new());
+            }
         }
-        Some(out)
+        out
+    }
+
+    /// The directory that carries the project's name: the repository's main
+    /// working tree, or the project directory when there is no git.
+    fn root(&self) -> Option<&str> {
+        self.git
+            .as_ref()
+            .and_then(|g| g.root.as_deref())
+            .or_else(|| self.input.project_dir())
     }
 
     fn git_status(&self) -> Option<String> {
@@ -372,20 +424,13 @@ fn basename(path: &str) -> &str {
         .unwrap_or(path)
 }
 
-/// Shorten an absolute path: home becomes `~`, and a long path collapses to its
-/// last two components.
-fn shorten_path(path: &str) -> String {
+/// Home becomes `~`: it is shorter and says the same thing.
+fn tilde(path: &str) -> String {
     let home = std::env::var("HOME").unwrap_or_default();
-    let shown = if !home.is_empty() && path.starts_with(&home) {
-        format!("~{}", &path[home.len()..])
-    } else {
-        path.to_string()
-    };
-    let parts: Vec<&str> = shown.split('/').filter(|s| !s.is_empty()).collect();
-    if parts.len() <= 3 {
-        return shown;
+    match path.strip_prefix(&home) {
+        Some(rest) if !home.is_empty() => format!("~{rest}"),
+        _ => path.to_string(),
     }
-    format!("\u{2026}/{}", parts[parts.len() - 2..].join("/"))
 }
 
 /// `"Opus 5 (1M context)"` -> `("Opus 5", true)`.
@@ -502,13 +547,31 @@ mod tests {
         assert_eq!(relative_to("/a/bc", "/a/b"), None);
     }
 
+    /// The path collapses toward "repository name + last directory" instead of
+    /// losing the repository, which is the part that says where we are.
     #[test]
-    fn a_long_path_collapses() {
+    fn the_path_collapses_around_the_repo_name() {
+        let input: Input = serde_json::from_str(
+            r#"{"workspace":{"current_dir":"/home/u/dev/acme/data-pipeline/.worktrees/smoke",
+                             "project_dir":"/home/u/dev/acme/data-pipeline"}}"#,
+        )
+        .unwrap();
+        let cfg = Config::default();
+        let ctx = Ctx {
+            input: &input,
+            git: None,
+            p: Painter::new(false),
+            cfg: &cfg,
+            now: 0,
+        };
         assert_eq!(
-            shorten_path("/Users/you/dev/klaude-status"),
-            "…/dev/klaude-status"
+            ctx.path_variants(),
+            vec![
+                "/home/u/dev/acme/data-pipeline/.worktrees/smoke",
+                "…data-pipeline/.worktrees/smoke",
+                "…data-pipeline/…/smoke",
+            ]
         );
-        assert_eq!(shorten_path("/a/b"), "/a/b");
     }
 
     #[test]

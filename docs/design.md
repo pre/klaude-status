@@ -149,10 +149,25 @@ own configuration rather than from this program.
 
 ## Fitting
 
-A line is assembled from segments joined with ` │ `. If it does not fit,
+A line is assembled from segments joined with ` │ `. If it does not fit, the
+`path` segment is first swapped for a shorter form of itself (see below), then
 segments are dropped in `DROP_ORDER` (weakest first) until it does; only if no
 amount of dropping is enough is the line truncated, ANSI-safely. The order is
 chosen so that `path` and `model` disappear last.
+
+The path shortens rather than disappears, because losing it entirely costs more
+than losing its head. The forms, widest first:
+
+```
+~/dev/work/klaude-status/.worktrees/fix-truncate
+…klaude-status/.worktrees/fix-truncate
+…klaude-status/…/fix-truncate
+```
+
+The emphasized part is the repository's **main** working tree, taken from
+`common_dir`, so a session in a linked worktree still shows which project it
+belongs to rather than the worktree's own name. Without git, `project_dir` is
+used instead.
 
 The terminal width is probed from **stderr**, because stdout is a pipe. Failing
 that, `COLUMNS`. As a last resort no limit is applied at all, and Claude Code
@@ -160,7 +175,7 @@ truncates the line itself.
 
 ## Testing
 
-`cargo test` covers the formatters (bar, tokens, durations, path shortening,
+`cargo test` covers the formatters (bar, tokens, durations, path collapsing,
 truncation), the fact that ANSI escapes do not affect width computation, the
 deadline behavior of the dirty check, and the whole pipeline against sample
 inputs: an ordinary session, a filling context, a worktree with a PR and a

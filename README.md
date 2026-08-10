@@ -90,7 +90,7 @@ are yours to choose. Full reference: [docs/configuration.md](docs/configuration.
 
 | Name | Shows |
 | --- | --- |
-| `path` | project root, then the path inside it dimmed, `+Nd` for `/add-dir` directories |
+| `path` | repository root emphasized, the rest dimmed, `+Nd` for `/add-dir` directories |
 | `git` | `⎇ branch`, `*` modified, `?` check timed out, `↑n`/`↓n` ahead/behind, `⧉ name` worktree |
 | `session` | session name, or `#abcd` from the id |
 | `model` | display name, plus `1M` on a 1M-context model |
@@ -109,8 +109,15 @@ Colors come from the 8/16 basic palette rather than 256 colors, so they follow
 the terminal theme and work on light and dark backgrounds. `NO_COLOR` or
 `"color": false` turns them off.
 
-When a line does not fit, segments are dropped least-important first rather
-than the line being cut mid-word; `path` and `model` are the last to go.
+When a line does not fit, the path collapses toward the repository name first,
+then segments are dropped least-important first rather than the line being cut
+mid-word; `path` and `model` are the last to go.
+
+```
+~/dev/work/klaude-status/.worktrees/fix-truncate
+…klaude-status/.worktrees/fix-truncate
+…klaude-status/…/fix-truncate
+```
 
 ## Performance
 

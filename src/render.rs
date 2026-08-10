@@ -37,6 +37,19 @@ fn render_line(ctx: &Ctx, names: &[String], width: Option<usize>) -> String {
         return join(&cells, ctx.p);
     };
 
+    // Shortening the path is cheaper than losing a whole segment, so it comes
+    // before the drop loop.
+    if visible_width(&join(&cells, ctx.p)) > max
+        && let Some(i) = cells.iter().position(|(name, _)| *name == "path")
+    {
+        for variant in ctx.path_variants().into_iter().skip(1) {
+            cells[i].1 = variant;
+            if visible_width(&join(&cells, ctx.p)) <= max {
+                break;
+            }
+        }
+    }
+
     while cells.len() > 1 && visible_width(&join(&cells, ctx.p)) > max {
         let Some(victim) = weakest(&cells) else { break };
         cells.remove(victim);

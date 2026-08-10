@@ -303,8 +303,10 @@ mod tests {
             );
         }
         // The most important information survives even when it is tight:
-        // `path` and `model` are last in the drop order.
+        // `path` and `model` are last in the drop order, and the path gives up
+        // its head before it gives up the project's name.
         assert!(narrow.contains("Opus 5"), "{narrow}");
+        assert!(narrow.contains("klaude-status"), "{narrow}");
         assert!(
             narrow.lines().next().is_some_and(|l| !l.trim().is_empty()),
             "the path line vanished entirely: {narrow}"

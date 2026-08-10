@@ -41,6 +41,9 @@ pub struct GitInfo {
     pub dirty: Dirty,
     pub ahead: usize,
     pub behind: usize,
+    /// The repository's main working tree. For a linked worktree this is still
+    /// the original checkout, whose name identifies the project.
+    pub root: Option<String>,
 }
 
 /// Collect git state for a directory. `None` if the directory is not in a repo.
@@ -48,6 +51,7 @@ pub fn collect(dir: &Path, dirty_budget: Option<Duration>) -> Option<GitInfo> {
     let repo = gix::discover(dir).ok()?;
     let mut info = GitInfo {
         dirty: dirty_state(&repo, dirty_budget),
+        root: main_worktree(&repo),
         ..Default::default()
     };
 
@@ -117,6 +121,16 @@ fn dirty_state(repo: &gix::Repository, budget: Option<Duration>) -> Dirty {
         Some(false) => Dirty::Clean,
         None => Dirty::Unknown,
     }
+}
+
+/// The repository's main working tree. `common_dir` is shared by every linked
+/// worktree and lives inside the original checkout, so its parent is the
+/// directory that carries the repository's name.
+fn main_worktree(repo: &gix::Repository) -> Option<String> {
+    // In a linked worktree `common_dir` is relative and full of `..`, so it has
+    // to be normalized before its parent means anything.
+    let common = gix::path::normalize(repo.common_dir().into(), Path::new("/"))?;
+    Some(common.parent()?.to_string_lossy().into_owned())
 }
 
 /// Differences between `HEAD^{tree}` and the index, i.e. staged changes.
@@ -225,6 +239,22 @@ mod tests {
     #[test]
     fn a_directory_outside_a_repo_yields_nothing() {
         assert!(collect(Path::new("/"), Some(Duration::from_millis(250))).is_none());
+    }
+
+    /// The root is what the path segment keeps when space runs out, so a wrong
+    /// one is visible on every line. In a linked worktree `common_dir` arrives
+    /// as `.git/worktrees/<name>/../..`, which only resolves to the repository
+    /// after normalization.
+    #[test]
+    fn the_root_is_the_main_working_tree() {
+        let dir = env!("CARGO_MANIFEST_DIR");
+        let Ok(repo) = gix::discover(Path::new(dir)) else {
+            return; // not built from a checkout
+        };
+        let root = main_worktree(&repo).expect("no root");
+        assert!(!root.contains("/.."), "unnormalized root: {root}");
+        // A checkout, not the git directory inside it.
+        assert!(Path::new(&root).join(".git").exists(), "bad root: {root}");
     }
 
     /// A zero budget means the watchdog has already fired by the time the scan
