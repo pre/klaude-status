@@ -45,7 +45,7 @@ program pure formatting.
 | Name | Content | What the color means |
 | --- | --- | --- |
 | `path` | project root emphasized, path inside it dimmed, `+Nd` for added directories | - |
-| `git` | `⎇ branch`, `*` modified, `?` unknown, `↑n` ahead, `↓n` behind, `⧉name` worktree | green clean, yellow modified, gray unknown, magenta detached |
+| `git` | `⎇ branch`, `*` modified, `?` unknown, `↑n` ahead, `↓n` behind, `⧉ name` worktree | green clean, yellow modified, gray unknown, magenta detached |
 | `session` | session name, or `#abcd` from the id | - |
 | `model` | display name, `1M` suffix on a 1M-context model | - |
 | `effort` | `low` … `max` | magenta max/xhigh, blue high, dim otherwise |
