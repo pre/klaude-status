@@ -90,7 +90,7 @@ are yours to choose. Full reference: [docs/configuration.md](docs/configuration.
 
 | Name | Shows |
 | --- | --- |
-| `path` | repository root emphasized, the rest dimmed, `+Nd` for `/add-dir` directories |
+| `path` | repository root emphasized, the rest dimmed, `+name` for `/add-dir` directories (`+Nd` when they do not fit) |
 | `git` | `⎇ branch`, `*` modified, `?` check timed out, `↑n`/`↓n` ahead/behind, `⧉ name` worktree |
 | `session` | session name, or `#abcd` from the id |
 | `model` | display name, plus `1M` on a 1M-context model |

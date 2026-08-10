@@ -44,7 +44,7 @@ program pure formatting.
 
 | Name | Content | What the color means |
 | --- | --- | --- |
-| `path` | repository root emphasized, the rest dimmed, `+Nd` for added directories | - |
+| `path` | repository root emphasized, the rest dimmed, `+name` for added directories (`+Nd` when they do not fit) | - |
 | `git` | `⎇ branch`, `*` modified, `?` unknown, `↑n` ahead, `↓n` behind, `⧉ name` worktree | green clean, yellow modified, gray unknown, magenta detached |
 | `session` | session name, or `#abcd` from the id | - |
 | `model` | display name, `1M` suffix on a 1M-context model | - |

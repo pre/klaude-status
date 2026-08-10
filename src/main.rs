@@ -347,6 +347,6 @@ mod tests {
         assert!(out.contains("no-think"), "{out}");
         assert!(out.contains("fast"), "{out}");
         assert!(out.contains("Explanatory"), "{out}");
-        assert!(out.contains("+1d"), "added directories missing: {out}");
+        assert!(out.contains("+extra"), "added directory missing: {out}");
     }
 }
