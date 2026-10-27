@@ -5,7 +5,7 @@
 //! seeing half a directory name. Truncation is the last resort.
 
 use crate::segments::Ctx;
-use crate::style::{Painter, visible_width};
+use crate::style::{LINK_END, Painter, take_escape, visible_width};
 
 /// Separator between segments.
 const OUTER: &str = " \u{2502} ";
@@ -96,18 +96,18 @@ fn truncate_visible(s: &str, max: usize) -> String {
     let mut out = String::with_capacity(s.len());
     let mut width = 0usize;
     let mut styled = false;
-    let mut chars = s.chars().peekable();
+    let mut linked = false;
+    let mut chars = s.chars();
 
     while let Some(c) = chars.next() {
         if c == '\x1b' {
             styled = true;
-            out.push(c);
-            for e in chars.by_ref() {
-                out.push(e);
-                if e.is_ascii_alphabetic() {
-                    break;
-                }
+            let seq = take_escape(&mut chars);
+            if let Some(osc8) = seq.strip_prefix("]8;") {
+                linked = !osc8.starts_with(";\x1b");
             }
+            out.push(c);
+            out.push_str(&seq);
             continue;
         }
         let w = visible_width(&c.to_string());
@@ -122,6 +122,9 @@ fn truncate_visible(s: &str, max: usize) -> String {
     // must stay free of escape sequences.
     if styled {
         out.push_str("\x1b[0m");
+    }
+    if linked {
+        out.push_str(LINK_END);
     }
     out
 }
@@ -150,6 +153,15 @@ mod tests {
     fn truncation_respects_the_width() {
         let out = truncate_visible("abcdefghij", 5);
         assert_eq!(visible_width(&out), 5);
+    }
+
+    #[test]
+    fn truncation_closes_a_link_it_cuts() {
+        let p = Painter::new(true);
+        let linked = p.link("abcdefghij", "https://github.com/o/r/pull/1");
+        let out = truncate_visible(&linked, 4);
+        assert_eq!(visible_width(&out), 4);
+        assert!(out.ends_with(LINK_END), "{out:?}");
     }
 
     #[test]

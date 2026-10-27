@@ -49,7 +49,7 @@ program pure formatting.
 | `session` | session name, or `#abcd` from the id | - |
 | `model` | display name, `1M` suffix on a 1M-context model | - |
 | `effort` | `low` … `max` | magenta max/xhigh, blue high, dim otherwise |
-| `flags` | `⚡fast`, `no-think`, `200k+`, output style, `@subagent`, vim mode, `PR#n` | red means pay attention |
+| `flags` | `⚡fast`, `no-think`, `200k+`, output style, `@subagent`, vim mode, `PR#n` (a link to the PR) | red means pay attention |
 | `context` | bar + `%` + `used/size` | green < 60 %, yellow < 80 %, red above |
 | `limits` | `5h n%` and `7d n%` + countdown to reset | green < 75 %, yellow < 90 %, red above |
 | `cost` | `$n`, `+added/-removed`, session duration | - |

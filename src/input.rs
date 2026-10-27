@@ -167,6 +167,8 @@ pub struct Pr {
     #[serde(default, deserialize_with = "lenient")]
     pub number: u64,
     #[serde(default, deserialize_with = "lenient")]
+    pub url: String,
+    #[serde(default, deserialize_with = "lenient")]
     pub review_state: Option<String>,
 }
 

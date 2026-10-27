@@ -326,7 +326,7 @@ impl Ctx<'_> {
             if let Some(state) = pr.review_state.as_deref() {
                 s.push_str(&format!(" {}", state.to_lowercase()));
             }
-            flags.push(self.p.paint(&s, Color::Blue));
+            flags.push(self.p.link(&self.p.paint(&s, Color::Blue), &pr.url));
         }
         // Bypass mode is a safety question, so it shouts if it ever does appear
         // in the input.

@@ -100,7 +100,7 @@ are yours to choose. Full reference: [docs/configuration.md](docs/configuration.
 | `session` | session name, or `#abcd` from the id |
 | `model` | display name, plus `1M` on a 1M-context model |
 | `effort` | `low` … `max` |
-| `flags` | `⚡fast`, `no-think`, `200k+`, output style, `@subagent`, vim mode, `PR#n` |
+| `flags` | `⚡fast`, `no-think`, `200k+`, output style, `@subagent`, vim mode, `PR#n` (a link to the PR) |
 | `context` | fill bar, percentage, tokens used against the window |
 | `limits` | 5-hour and 7-day quota with a countdown to reset |
 | `cost` | dollars, `+added/-removed` lines, session duration |
